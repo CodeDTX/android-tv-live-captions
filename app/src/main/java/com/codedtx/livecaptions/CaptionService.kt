@@ -17,6 +17,7 @@ import android.util.Log
 import androidx.core.content.IntentCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
+import com.codedtx.livecaptions.asr.LanguageStore
 import com.codedtx.livecaptions.asr.Transcript
 import com.codedtx.livecaptions.asr.VoskTranscriber
 import com.codedtx.livecaptions.audio.PlaybackCapture
@@ -85,8 +86,9 @@ class CaptionService : LifecycleService() {
     }
 
     private suspend fun listen(projection: MediaProjection) {
-        val transcriber = try {
-            VoskTranscriber.load(this)
+        var language = LanguageStore.load(this)
+        var transcriber = try {
+            VoskTranscriber.load(this, language)
         } catch (e: Exception) {
             Log.e(TAG, "Speech model failed to load", e)
             fail("The speech model did not load")
@@ -102,7 +104,7 @@ class CaptionService : LifecycleService() {
             return
         }
 
-        val track = CaptionTrack()
+        var track = CaptionTrack(maxCharsPerLine = language.maxCharsPerLine)
         // A quarter second per read: short enough that words appear as they are spoken.
         val buffer = ShortArray(PlaybackCapture.SAMPLE_RATE / 4)
         var lastSound = SystemClock.elapsedRealtime()
@@ -113,6 +115,18 @@ class CaptionService : LifecycleService() {
             withContext(Dispatchers.IO) {
                 capture.start()
                 while (isActive) {
+                    // A new language means a new model, but the same capture grant.
+                    val wanted = LanguageStore.current.value
+                    if (wanted != language) {
+                        CaptionBus.status.value = CaptionStatus.Starting
+                        CaptionBus.frame.value = CaptionFrame.EMPTY
+                        transcriber.close()
+                        transcriber = VoskTranscriber.load(this@CaptionService, wanted)
+                        language = wanted
+                        track = CaptionTrack(maxCharsPerLine = wanted.maxCharsPerLine)
+                        CaptionBus.status.value = CaptionStatus.Listening(hearing)
+                    }
+
                     val count = capture.read(buffer)
                     if (count < 0) error("AudioRecord read failed: $count")
                     if (count == 0) continue

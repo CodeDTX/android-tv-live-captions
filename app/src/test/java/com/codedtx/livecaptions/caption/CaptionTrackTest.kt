@@ -81,3 +81,26 @@ class CaptionTrackTest {
         assertEquals(2, lines.size)
     }
 }
+
+class DisplayLengthTest {
+    @Test
+    fun `latin text counts one per character`() {
+        assertEquals(5, displayLength("Hello"))
+    }
+
+    @Test
+    fun `devanagari vowel signs do not count as extra letters`() {
+        // "nahin": four code units, but the vowel sign and nasal mark join their consonants.
+        val word = "नहीं"
+        assertEquals(4, word.length)
+        assertTrue(displayLength(word) < word.length)
+    }
+
+    @Test
+    fun `clear empties the frame`() {
+        val track = CaptionTrack()
+        track.onFinal("something said", now = 0)
+        track.clear()
+        assertTrue(track.frame().isEmpty)
+    }
+}

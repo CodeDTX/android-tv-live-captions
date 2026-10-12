@@ -26,7 +26,14 @@
     <string name="test_detail">Speaks a sentence so you can see captions appear.</string>
     <string name="test_no_voice">This TV has no text-to-speech voice. Play any video with speech to check instead.</string>
     <string name="action_test">Play a test sentence</string>
-    <string name="test_sentence">Captions are working. This sentence was spoken by the TV and written down by the app.</string>
+    <string name="test_sentence_en">Captions are working. This sentence was spoken by the TV and written down by the app.</string>
+    <string name="test_sentence_hi">कैप्शन काम कर रहे हैं। यह वाक्य टीवी ने बोला और ऐप ने लिखा।</string>
+    <string name="test_no_voice_for">This TV has no %1$s voice. Play any video in %1$s to check instead.</string>
+
+    <string name="language_label">Spoken language</string>
+    <string name="language_dialog_title">Which language is being spoken?</string>
+    <string name="language_english">English</string>
+    <string name="language_hindi">हिंदी (Hindi)</string>
 
     <string name="status_stopped">Not running</string>
     <string name="status_starting">Starting</string>

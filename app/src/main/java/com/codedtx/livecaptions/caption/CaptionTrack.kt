@@ -1,5 +1,7 @@
 package com.codedtx.livecaptions.caption
 
+import java.text.BreakIterator
+
 /** One word on screen. [confirmed] is false while the recogniser may still change it. */
 data class CaptionWord(val text: String, val confirmed: Boolean)
 
@@ -64,6 +66,12 @@ class CaptionTrack(
         return true
     }
 
+    /** Drops everything on screen, for a change of language. */
+    fun clear() {
+        confirmed.clear()
+        partial = emptyList()
+    }
+
     fun frame(): CaptionFrame {
         val all = confirmed.map { CaptionWord(it, confirmed = true) } +
             partial.map { CaptionWord(it, confirmed = false) }
@@ -92,13 +100,28 @@ internal fun wrap(words: List<CaptionWord>, maxChars: Int): List<List<CaptionWor
     var length = 0
     for (word in words) {
         val line = lines.lastOrNull()
-        if (line == null || length + 1 + word.text.length > maxChars) {
+        val size = displayLength(word.text)
+        if (line == null || length + 1 + size > maxChars) {
             lines += mutableListOf(word)
-            length = word.text.length
+            length = size
         } else {
             line += word
-            length += 1 + word.text.length
+            length += 1 + size
         }
     }
     return lines
+}
+
+/**
+ * Length in letters a reader sees, not in UTF-16 units. In Devanagari a single
+ * letter is often a consonant plus vowel signs, several units that draw as one.
+ * Counting units would wrap Hindi lines far too early.
+ */
+internal fun displayLength(text: String): Int {
+    if (text.all { it.code < 0x300 }) return text.length
+    val breaks = BreakIterator.getCharacterInstance()
+    breaks.setText(text)
+    var count = 0
+    while (breaks.next() != BreakIterator.DONE) count++
+    return count
 }

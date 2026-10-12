@@ -1,6 +1,7 @@
 package com.codedtx.livecaptions
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
@@ -22,6 +23,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.codedtx.livecaptions.asr.Language
+import com.codedtx.livecaptions.asr.LanguageStore
 import com.codedtx.livecaptions.caption.CaptionBus
 import com.codedtx.livecaptions.caption.CaptionStatus
 import com.codedtx.livecaptions.overlay.CaptionOverlayService
@@ -47,6 +50,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var startAction: Button
     private lateinit var testDetail: TextView
     private lateinit var testAction: Button
+    private lateinit var languageAction: Button
 
     private var overlaySettingsMissing = false
     private var tts: TextToSpeech? = null
@@ -80,11 +84,14 @@ class MainActivity : ComponentActivity() {
         startAction = findViewById(R.id.start_action)
         testDetail = findViewById(R.id.test_detail)
         testAction = findViewById(R.id.test_action)
+        languageAction = findViewById(R.id.language_action)
+        LanguageStore.load(this)
 
         overlayAction.setOnClickListener { openAccessibilitySettings() }
         audioAction.setOnClickListener { askAudio.launch(Manifest.permission.RECORD_AUDIO) }
         startAction.setOnClickListener { if (isRunning()) stopCaptions() else startCaptions() }
         testAction.setOnClickListener { speakTestSentence() }
+        languageAction.setOnClickListener { chooseLanguage() }
 
         tts = TextToSpeech(this) { result ->
             ttsReady = result == TextToSpeech.SUCCESS
@@ -144,6 +151,7 @@ class MainActivity : ComponentActivity() {
         )
         startNumber.setTextColor(getColor(if (running) R.color.done else if (ready) R.color.amber else R.color.muted))
 
+        languageAction.setText(LanguageStore.current.value.label)
         showStatus(CaptionBus.status.value)
     }
 
@@ -167,8 +175,11 @@ class MainActivity : ComponentActivity() {
         (statusDot.background.mutate() as GradientDrawable).setColor(getColor(color))
     }
 
+    // Visibility, not isShown: in onResume the window is not visible yet, so
+    // isShown is false for everything and focus fell to the language button.
     private fun firstOpenAction(): View? =
-        listOf(overlayAction, audioAction, startAction, testAction).firstOrNull { it.isShown && it.isEnabled }
+        listOf(overlayAction, audioAction, startAction, testAction)
+            .firstOrNull { it.visibility == View.VISIBLE && it.isEnabled }
 
     private fun isRunning(): Boolean = when (CaptionBus.status.value) {
         CaptionStatus.Starting, is CaptionStatus.Listening -> true
@@ -211,11 +222,33 @@ class MainActivity : ComponentActivity() {
         startService(CaptionService.stopIntent(this))
     }
 
+    /** Takes effect at once, even while running: the service swaps models without a new grant. */
+    private fun chooseLanguage() {
+        val languages = Language.entries
+        val current = languages.indexOf(LanguageStore.current.value)
+        AlertDialog.Builder(this)
+            .setTitle(R.string.language_dialog_title)
+            .setSingleChoiceItems(languages.map { getString(it.label) }.toTypedArray(), current) { dialog, which ->
+                LanguageStore.set(this, languages[which])
+                testDetail.setText(R.string.test_detail)
+                refresh()
+                dialog.dismiss()
+            }
+            .show()
+    }
+
     private fun speakTestSentence() {
-        if (!ttsReady) {
+        val tts = tts
+        if (!ttsReady || tts == null) {
             testDetail.setText(R.string.test_no_voice)
             return
         }
-        tts?.speak(getString(R.string.test_sentence), TextToSpeech.QUEUE_FLUSH, null, "test")
+        val language = LanguageStore.current.value
+        if (tts.setLanguage(language.locale) < TextToSpeech.LANG_AVAILABLE) {
+            testDetail.text = getString(R.string.test_no_voice_for, getString(language.label))
+            return
+        }
+        testDetail.setText(R.string.test_detail)
+        tts.speak(getString(language.testSentence), TextToSpeech.QUEUE_FLUSH, null, "test")
     }
 }

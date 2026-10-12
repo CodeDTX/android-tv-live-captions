@@ -26,20 +26,26 @@ class VoskTranscriber private constructor(private val model: Model) : Transcribe
         return Transcript.Partial(partial)
     }
 
+    private var closed = false
+
+    /** Safe to call twice: a failed language swap closes the old model before the finally block does. */
     override fun close() {
+        if (closed) return
+        closed = true
         recognizer.close()
         model.close()
     }
 
     companion object {
         /**
-         * Copies the bundled model out of the APK on first run (Vosk needs real
-         * files), then loads it. Later runs skip the copy unless the model changed.
+         * Copies the bundled model for [language] out of the APK the first time
+         * it is used (Vosk needs real files), then loads it. Later runs skip the
+         * copy unless the model changed. Unused languages are never copied.
          */
-        suspend fun load(context: Context): VoskTranscriber = suspendCancellableCoroutine { cont ->
+        suspend fun load(context: Context, language: Language): VoskTranscriber = suspendCancellableCoroutine { cont ->
             StorageService.unpack(
                 context.applicationContext,
-                "model-en-us",
+                language.assetDir,
                 "model",
                 { model -> cont.resume(VoskTranscriber(model)) },
                 { error -> cont.resumeWithException(error) },

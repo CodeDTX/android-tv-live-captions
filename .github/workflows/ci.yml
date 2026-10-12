@@ -21,11 +21,12 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      # The speech model is about 40 MB and never changes for a given name.
+      # The speech models are about 40 MB each and never change for a given name.
+      # Bump the key when app/build.gradle.kts changes speechModels.
       - uses: actions/cache@v4
         with:
-          path: app/src/main/assets/model-en-us
-          key: speech-model-vosk-model-small-en-us-0.15
+          path: app/src/main/assets/model-*
+          key: speech-models-en-us-0.15-hi-0.22
 
       - name: Unit tests
         run: ./gradlew :app:testDebugUnitTest

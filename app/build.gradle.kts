@@ -35,12 +35,6 @@ android {
     kotlin {
         jvmToolchain(17)
     }
-
-    androidResources {
-        // The speech model ships as plain files; compressing it buys nothing and
-        // slows the first-run unpack.
-        noCompress += listOf("mdl", "fst", "int", "conf", "mat", "dubm", "ie", "stats")
-    }
 }
 
 dependencies {
@@ -56,36 +50,46 @@ dependencies {
 }
 
 /*
- * The English speech model is about 40 MB, so it is fetched at build time from
- * the Vosk project rather than committed. Vosk's StorageService needs a `uuid`
- * file beside the model to decide whether the copy on the device is current.
+ * Speech models are about 40 MB each, so they are fetched at build time from
+ * the Vosk project rather than committed. Each lands in its own asset folder,
+ * which is what `Language.assetDir` names. Vosk's StorageService needs a `uuid`
+ * file beside a model to decide whether the copy on the device is current, so
+ * the model name goes in it: renaming a model here re-fetches it.
  */
-val speechModel = "vosk-model-small-en-us-0.15"
-val modelDir = layout.projectDirectory.dir("src/main/assets/model-en-us")
+val speechModels = mapOf(
+    "model-en-us" to "vosk-model-small-en-us-0.15",
+    "model-hi" to "vosk-model-small-hi-0.22",
+)
 
-val fetchSpeechModel by tasks.registering {
-    description = "Downloads $speechModel into the app's assets."
-    val marker = modelDir.file("uuid").asFile
-    outputs.dir(modelDir)
-    onlyIf { !marker.exists() }
+val fetchSpeechModels by tasks.registering {
+    description = "Downloads the Vosk speech models into the app's assets."
+    val assets = layout.projectDirectory.dir("src/main/assets")
+    outputs.dirs(speechModels.keys.map { assets.dir(it) })
     doLast {
-        val zip = layout.buildDirectory.file("tmp/$speechModel.zip").get().asFile
-        zip.parentFile.mkdirs()
-        if (!zip.exists()) {
-            URI("https://alphacephei.com/vosk/models/$speechModel.zip").toURL().openStream().use { input ->
-                zip.outputStream().use { input.copyTo(it) }
+        for ((folder, model) in speechModels) {
+            val target = assets.dir(folder)
+            val marker = target.file("uuid").asFile
+            if (marker.exists() && marker.readText().trim() == model) continue
+
+            val zip = layout.buildDirectory.file("tmp/$model.zip").get().asFile
+            zip.parentFile.mkdirs()
+            if (!zip.exists()) {
+                URI("https://alphacephei.com/vosk/models/$model.zip").toURL().openStream().use { input ->
+                    zip.outputStream().use { input.copyTo(it) }
+                }
             }
-        }
-        project.copy {
-            from(zipTree(zip)) {
-                // Drop the archive's top-level folder.
-                eachFile { relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray()) }
-                includeEmptyDirs = false
+            target.asFile.deleteRecursively()
+            project.copy {
+                from(zipTree(zip)) {
+                    // Drop the archive's top-level folder.
+                    eachFile { relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray()) }
+                    includeEmptyDirs = false
+                }
+                into(target)
             }
-            into(modelDir)
+            marker.writeText("$model\n")
         }
-        marker.writeText("$speechModel\n")
     }
 }
 
-tasks.named("preBuild") { dependsOn(fetchSpeechModel) }
+tasks.named("preBuild") { dependsOn(fetchSpeechModels) }

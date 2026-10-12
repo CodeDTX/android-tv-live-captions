@@ -41,6 +41,10 @@ Three steps with the remote, done once:
 
 Then press **Play a test sentence** to check that captions appear.
 
+Choose the language being spoken under **Spoken language**. The choice is
+saved, and it can change while captions are running: the app swaps speech
+models without asking to share the screen again.
+
 Captions follow your TV's own caption style (Settings, Accessibility,
 Captions): size, colour, background and font.
 
@@ -84,6 +88,19 @@ accessibility overlay window                    overlay/CaptionOverlayService.kt
 - The overlay uses an accessibility window rather than "display over other
   apps", because several Android TV builds have no screen to grant that.
 
+## Languages
+
+| Language | Speech model | Notes |
+| --- | --- | --- |
+| English | vosk-model-small-en-us-0.15 | About 1 word in 10 wrong on clean speech. |
+| Hindi | vosk-model-small-hi-0.22 | About 1 word in 4 or 5 wrong, by Vosk's published figures. Written in Devanagari. |
+
+Error rates are the ones Vosk publishes for each model, not measured here.
+Adding a language means bundling another model, and Vosk does not cover every
+language: it has no Tamil model, and its small Telugu model gets most words
+wrong. A model is only copied out of the APK the first time its language is
+used.
+
 ## Building
 
 Needs JDK 17 and the Android SDK.
@@ -92,20 +109,21 @@ Needs JDK 17 and the Android SDK.
 ./gradlew :app:testDebugUnitTest :app:assembleDebug
 ```
 
-The first build downloads the English speech model (about 40 MB) from the Vosk
-project into `app/src/main/assets/model-en-us`. It is not committed.
+The first build downloads the speech models (about 40 MB each) from the Vosk
+project into `app/src/main/assets/model-*`. They are not committed.
 
 ## Limits today
 
-- English only, using the small Vosk model. It mishears more than a cloud
-  service would, for example "was spoken" as "with spoken".
-- Speech in other languages does not come out blank. It comes out as
-  English-sounding words that are wrong, which is worse. Tested on Tamil and
-  Hindi content.
+- English and Hindi only, using Vosk's small models. They mishear more than a
+  cloud service would, for example "was spoken" as "with spoken".
+- Speech in a language other than the one chosen does not come out blank. It
+  comes out as wrong words in the chosen language, which is worse. Seen with
+  Tamil and Hindi content while English was chosen.
+- No translation. Hindi speech gives Hindi captions, not English subtitles.
 - No punctuation. The app capitalises the start of each sentence and "I", and
   nothing more.
 - Android 10 or later, ARM devices only.
-- The debug APK is about 95 MB, mostly the speech model.
+- The debug APK is about 113 MB, mostly the two speech models.
 
 The recogniser sits behind a small interface (`asr/Transcriber.kt`), so a
 stronger on-device engine such as sherpa-onnx can replace Vosk without touching
@@ -119,6 +137,7 @@ Third-party parts:
 
 - [Vosk](https://github.com/alphacep/vosk-api), Apache 2.0.
 - [vosk-model-small-en-us-0.15](https://alphacephei.com/vosk/models), Apache 2.0.
+- [vosk-model-small-hi-0.22](https://alphacephei.com/vosk/models), Apache 2.0.
 - [JNA](https://github.com/java-native-access/jna), Apache 2.0.
 
 Built by [CodeDTX](https://codedtx.com).

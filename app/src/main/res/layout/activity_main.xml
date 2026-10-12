@@ -62,6 +62,21 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
+        <!-- A setting rather than a step, so it lives here and carries no number. -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/language_label"
+            android:textColor="@color/muted"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/language_action"
+            style="@style/Action"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="32dp" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
