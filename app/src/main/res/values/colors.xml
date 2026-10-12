@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Low-glare teal for a screen watched in a dark room. -->
+    <color name="ink">#10262C</color>
+    <color name="line">#24474F</color>
+    <color name="outline">#3E6670</color>
+    <color name="text">#EEF4F2</color>
+    <color name="muted">#9DB6B8</color>
+    <!-- Closed-caption yellow: the one accent, used for focus and for what to do next. -->
+    <color name="amber">#F5C242</color>
+    <color name="done">#8FD6A9</color>
+</resources>

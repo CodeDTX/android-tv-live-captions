@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Live captions</string>
+    <string name="intro">Subtitles for whatever is playing on this TV, worked out on the TV itself. Nothing you watch leaves the device.</string>
+    <string name="credit">Open source by CodeDTX</string>
+
+    <string name="step_overlay_title">Turn on the overlay</string>
+    <string name="step_overlay_todo">Opens Accessibility settings. Choose Live captions and turn it on.</string>
+    <string name="step_overlay_missing">This TV has no Accessibility settings screen. Turn the overlay on with adb, as the README explains.</string>
+    <string name="step_overlay_done">On</string>
+    <string name="action_open_settings">Open settings</string>
+
+    <string name="step_audio_title">Let the app hear the TV</string>
+    <string name="step_audio_todo">Android calls this recording audio. The app only hears what the TV plays, never the room.</string>
+    <string name="step_audio_done">Allowed</string>
+    <string name="action_allow">Allow</string>
+
+    <string name="step_start_title">Start captions</string>
+    <string name="step_start_todo">Android will ask to share your screen. Only the sound is used.</string>
+    <string name="step_start_blocked">Finish the two steps above first.</string>
+    <string name="step_start_running">Captions appear at the bottom of the screen, over any app.</string>
+    <string name="action_start">Start captions</string>
+    <string name="action_stop">Stop captions</string>
+
+    <string name="test_title">Check it works</string>
+    <string name="test_detail">Speaks a sentence so you can see captions appear.</string>
+    <string name="test_no_voice">This TV has no text-to-speech voice. Play any video with speech to check instead.</string>
+    <string name="action_test">Play a test sentence</string>
+    <string name="test_sentence">Captions are working. This sentence was spoken by the TV and written down by the app.</string>
+
+    <string name="status_stopped">Not running</string>
+    <string name="status_starting">Starting</string>
+    <string name="status_listening">Listening</string>
+    <string name="status_silent">Hearing nothing. If a show is playing, that app does not share its sound. Most paid streaming apps do not.</string>
+    <string name="status_capture_declined">Screen sharing was declined, so captions did not start.</string>
+    <string name="status_no_capture_prompt">This TV has no screen-sharing prompt, so it cannot share its sound with the app.</string>
+
+    <string name="overlay_service_label">Live captions</string>
+    <string name="overlay_service_description">Shows live captions at the bottom of the screen, over any app. It reads no screen content and sees nothing you type.</string>
+
+    <string name="notification_channel">Live captions</string>
+    <string name="notification_title">Live captions is running</string>
+    <string name="notification_text">Listening to what the TV plays.</string>
+</resources>
