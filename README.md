@@ -11,17 +11,18 @@ so nothing you watch can leave the device.
 The app can only caption audio that Android lets it hear. Android shares the
 sound of apps that allow it and plays silence for apps that opt out.
 
-- **Works:** apps that allow audio capture. Most local media players, many
-  free and IPTV apps, and anything you play yourself.
+- **Works:** apps that allow audio capture. YouTube for Android TV does, and
+  is tested. Many local media players and other apps do too.
 - **Does not work:** apps that opt out. That includes most paid streaming apps,
   which already have their own subtitles.
 - **The app tells you which case you are in.** If it hears only silence for
   eight seconds while running, the setup screen says so, rather than leaving
   you waiting for captions that cannot come.
 
-Tested so far on the Android TV emulator (Android 16). Not yet tested on real
-TV hardware. Reports from real devices are the most useful issue anyone can
-open.
+Tested on the Android TV emulator (Android 16) and on a Haier MatrixTV BE
+(Android 14) running YouTube for Android TV, where captions drew over
+full-screen video and rolled up live. Reports from other devices are the most
+useful issue anyone can open.
 
 ## Setup on the TV
 
@@ -98,6 +99,9 @@ project into `app/src/main/assets/model-en-us`. It is not committed.
 
 - English only, using the small Vosk model. It mishears more than a cloud
   service would, for example "was spoken" as "with spoken".
+- Speech in other languages does not come out blank. It comes out as
+  English-sounding words that are wrong, which is worse. Tested on Tamil and
+  Hindi content.
 - No punctuation. The app capitalises the start of each sentence and "I", and
   nothing more.
 - Android 10 or later, ARM devices only.
