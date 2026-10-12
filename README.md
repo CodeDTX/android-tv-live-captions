@@ -129,6 +129,31 @@ The recogniser sits behind a small interface (`asr/Transcriber.kt`), so a
 stronger on-device engine such as sherpa-onnx can replace Vosk without touching
 capture or display.
 
+## Roadmap
+
+Nothing here is built yet. Each item says what it is waiting on.
+
+- **English subtitles for Hindi speech.** Needs a translation step after
+  recognition that runs on the TV, keeps the app offline, and stays open
+  source. On the TV tested (1.8 GB of memory, about 230 MB free while YouTube
+  plays), none of the options found so far meets all three:
+  - Google ML Kit translation would fit, but needs the internet permission to
+    download its language pack and is not open source.
+  - Open translation models such as IndicTrans2 are open and offline, but are
+    estimated to need more memory than the TV has free.
+  - Whisper translates speech to English directly, but works in 30-second
+    windows, so captions would lag far behind the picture.
+
+  Translation also cannot fix recognition mistakes, so this waits on better
+  Hindi recognition too.
+- **Caption position, top or bottom.** News channels put tickers and headlines
+  where captions sit, and so do player controls.
+- **More languages.** Vosk has no Tamil model, and its small Telugu model gets
+  most words wrong, so these need another engine behind `asr/Transcriber.kt`,
+  such as sherpa-onnx.
+- **Better accuracy.** Vosk's larger models, or another engine, measured on real
+  TVs for speed and memory before they ship.
+
 ## Licence
 
 MIT, see [LICENSE](LICENSE).
